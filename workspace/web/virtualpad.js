@@ -8,35 +8,70 @@
   }
   window.__pad = pad; // 供 autotap 等外部驱动使用
 
-  // ---------- 画布自适应：整数 CSS + 整数倍超采样渲染 + 平滑微缩（均匀无失真） ----------
-  // backing = ceil(目标设备宽/240) 的整数倍渲染（像素完美），
-  // 显示时以 ~0.95 倍轻微均匀缩小：像素宽度一致、轮廓不抖，避开
-  // "分数 CSS 设备像素不齐→重采样发虚" 与 "非整数最近邻→像素忽宽忽窄" 两个坑。
+  // ---------- 画布自适应：双画质模式 ----------
+  // 锐利=整数倍像素完美（每逻辑像素恰 k×k 设备像素，零重采样，画面略小有边框）
+  // 铺满=ceil 整数倍超采样渲染 + 平滑微缩（画面最大，约 5% 均匀柔和）
+  var LOGICAL_W = 240, LOGICAL_H = 320;
+  var displayMode = 'sharp';
+  try {
+    displayMode = localStorage.getItem('hsqst_display') === 'fill' ? 'fill' : 'sharp';
+  } catch (e) {}
+  var mq = location.search.match(/quality=(fill|sharp)/);
+  if (mq) {
+    displayMode = mq[1];
+    try { localStorage.setItem('hsqst_display', displayMode); } catch (e) {}
+  }
   function layout() {
     var cv = document.getElementById('game');
     var dpr = window.devicePixelRatio || 1;
     var padEl = document.getElementById('pad');
     var padH = (padEl && padEl.offsetHeight) || 186;
-    // 可用空间（整数 CSS px）：12 ≈ screenframe 左右留白，24 ≈ 上下留白
     var availW = Math.floor(Math.max(160, window.innerWidth - 12));
     var availH = Math.floor(Math.max(200, window.innerHeight - padH - 24));
-    // 3:4 比例取最大整数尺寸；宽对齐到 3 的倍数使高 = 4/3×宽 为整数
-    var cw = Math.min(availW, Math.floor(availH * 3 / 4));
-    cw -= cw % 3;
-    if (cw < 120) cw = 120;
-    var ch = cw * 4 / 3;
-    var r = Math.max(1, Math.ceil(cw * dpr / 240));
-    var bw = 240 * r, bh = 320 * r;
+    var cw, ch, r;
+    if (displayMode === 'sharp') {
+      var k = Math.floor(Math.min(availW * dpr / LOGICAL_W, availH * dpr / LOGICAL_H));
+      if (k < 1) k = 1;
+      r = k;
+      cw = Math.round(LOGICAL_W * k / dpr);
+      ch = Math.round(LOGICAL_H * k / dpr);
+    } else {
+      cw = Math.min(availW, Math.floor(availH * 3 / 4));
+      cw -= cw % 3;
+      if (cw < 120) cw = 120;
+      ch = cw * 4 / 3;
+      r = Math.max(1, Math.ceil(cw * dpr / LOGICAL_W));
+    }
+    var bw = LOGICAL_W * r, bh = LOGICAL_H * r;
     if (cv.width !== bw || cv.height !== bh) {
       cv.width = bw;   // 重设 backing 会清空画布，Java 侧下一帧全量重绘
       cv.height = bh;
     }
     cv.style.width = cw + 'px';
     cv.style.height = ch + 'px';
+    cv.style.imageRendering = displayMode === 'sharp' ? 'pixelated' : 'auto';
     window.__gscaleX = r;
     window.__gscaleY = r;
     if (window.__resizeJava) window.__resizeJava(r, r);
   }
+  function setDisplayMode(m) {
+    displayMode = m;
+    window.__dmode = m;
+    try { localStorage.setItem('hsqst_display', m); } catch (e) {}
+    var b = document.getElementById('btnQuality');
+    if (b) b.textContent = m === 'sharp' ? '画质·锐利' : '画质·铺满';
+    layout();
+  }
+  var qbtn = document.getElementById('btnQuality');
+  if (qbtn) {
+    qbtn.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      setDisplayMode(displayMode === 'sharp' ? 'fill' : 'sharp');
+    });
+    qbtn.textContent = displayMode === 'sharp' ? '画质·锐利' : '画质·铺满';
+  }
+  window.__dmode = displayMode;
+  layout();
   layout();
   window.addEventListener('resize', layout);
   window.addEventListener('orientationchange', layout);
@@ -139,7 +174,8 @@ if (location.search.indexOf('debug=1') >= 0) {
         + '\nbtn=' + np.querySelector('.nbtn').offsetWidth
         + '\ncv=' + document.getElementById('game').width + 'x' + document.getElementById('game').height
         + '\ncss=' + document.getElementById('game').style.width + ' x ' + document.getElementById('game').style.height
-        + '\ngs=' + window.__gscaleX + 'x' + window.__gscaleY + ' dpr=' + window.devicePixelRatio;
+        + '\ngs=' + window.__gscaleX + 'x' + window.__gscaleY + ' dpr=' + window.devicePixelRatio
+        + '\nmode=' + window.__dmode;
       document.body.appendChild(d);
       // 像素探针：直接读画布位图，区分"渲染黑屏"与"截图伪影"
       setInterval(function () {
