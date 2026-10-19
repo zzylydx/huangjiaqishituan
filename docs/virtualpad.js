@@ -8,13 +8,15 @@
   }
   window.__pad = pad; // 供 autotap 等外部驱动使用
 
-  // ---------- 画布自适应：整数 CSS 尺寸 + backing=精确设备像素（零重采样） ----------
-  var LOGICAL_W = 240, LOGICAL_H = 320;
+  // ---------- 画布自适应：整数 CSS + 整数倍超采样渲染 + 平滑微缩（均匀无失真） ----------
+  // backing = ceil(目标设备宽/240) 的整数倍渲染（像素完美），
+  // 显示时以 ~0.95 倍轻微均匀缩小：像素宽度一致、轮廓不抖，避开
+  // "分数 CSS 设备像素不齐→重采样发虚" 与 "非整数最近邻→像素忽宽忽窄" 两个坑。
   function layout() {
     var cv = document.getElementById('game');
     var dpr = window.devicePixelRatio || 1;
     var padEl = document.getElementById('pad');
-    var padH = (padEl && padEl.offsetHeight) || 190;
+    var padH = (padEl && padEl.offsetHeight) || 186;
     // 可用空间（整数 CSS px）：12 ≈ screenframe 左右留白，24 ≈ 上下留白
     var availW = Math.floor(Math.max(160, window.innerWidth - 12));
     var availH = Math.floor(Math.max(200, window.innerHeight - padH - 24));
@@ -23,16 +25,17 @@
     cw -= cw % 3;
     if (cw < 120) cw = 120;
     var ch = cw * 4 / 3;
-    var bw = Math.round(cw * dpr), bh = Math.round(ch * dpr);
+    var r = Math.max(1, Math.ceil(cw * dpr / 240));
+    var bw = 240 * r, bh = 320 * r;
     if (cv.width !== bw || cv.height !== bh) {
       cv.width = bw;   // 重设 backing 会清空画布，Java 侧下一帧全量重绘
       cv.height = bh;
     }
     cv.style.width = cw + 'px';
     cv.style.height = ch + 'px';
-    window.__gscaleX = bw / 240;
-    window.__gscaleY = bh / 320;
-    if (window.__resizeJava) window.__resizeJava(bw / 240, bh / 320);
+    window.__gscaleX = r;
+    window.__gscaleY = r;
+    if (window.__resizeJava) window.__resizeJava(r, r);
   }
   layout();
   window.addEventListener('resize', layout);
