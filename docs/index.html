@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="皇家骑士团">
+<meta name="theme-color" content="#0b0d14">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+<title>皇家骑士团</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: #0b0d14;
+    touch-action: none;
+    overscroll-behavior: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    font-family: system-ui, -apple-system, "PingFang SC", sans-serif;
+  }
+  body {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  #screenframe {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+    padding: 6px 8px 2px;
+  }
+  #game {
+    border: 1px solid #232838;
+    border-radius: 6px;
+    background: #000;
+    box-shadow: 0 4px 24px rgba(0,0,0,.5);
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    display: block;
+    touch-action: none;
+  }
+  #pad {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 430px;
+    display: flex;
+    flex-direction: column;
+    padding: 4px 10px 8px;
+    gap: 6px;
+    min-height: 0;
+  }
+  .softrow {
+    display: flex;
+    gap: 8px;
+    flex: 0 0 auto;
+  }
+  .softkey {
+    flex: 1;
+    height: 40px;
+    border: 1px solid #2c3247;
+    border-radius: 8px;
+    background: linear-gradient(#1b2030, #141824);
+    color: #cdd4e8;
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+  }
+  .softkey:active, .softkey.pressed { background: #2c3552; }
+  #midrow {
+    display: flex;
+    gap: 8px;
+    flex: 0 0 auto;
+    min-height: 0;
+    align-items: stretch;
+  }
+  #dpad {
+    flex: 0 0 auto;
+    width: 140px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 44px 44px 44px;
+    gap: 4px;
+  }
+  .dbtn {
+    border: 1px solid #2c3247;
+    border-radius: 8px;
+    background: linear-gradient(#1b2030, #141824);
+    color: #8b93ac;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+  }
+  .dbtn:active, .dbtn.pressed { background: #2c3552; color: #e8ecf8; }
+  .dbtn.up { grid-column: 2; grid-row: 1; }
+  .dbtn.left { grid-column: 1; grid-row: 2; }
+  .dbtn.fire { grid-column: 2; grid-row: 2; border-radius: 50%; background: linear-gradient(#33241c, #241812); color: #f0b090; border-color: #4a3226; }
+  .dbtn.fire:active, .dbtn.fire.pressed { background: #54372a; }
+  .dbtn.right { grid-column: 3; grid-row: 2; }
+  .dbtn.down { grid-column: 2; grid-row: 3; }
+  #numpad {
+    flex: 1 1 auto;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: 44px 44px 44px;
+    gap: 4px;
+    min-width: 0;
+  }
+  .nbtn {
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    border: 1px solid #262b3d;
+    border-radius: 8px;
+    background: linear-gradient(#171b28, #111420);
+    color: #aeb6cd;
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+  }
+  .nbtn:active, .nbtn.pressed { background: #2c3552; color: #fff; }
+</style>
+</head>
+<body>
+  <div id="screenframe"><canvas id="game" width="720" height="960"></canvas></div>
+  <div id="pad">
+    <div class="softrow">
+      <button class="softkey" data-code="-6" aria-label="左软键">菜单</button>
+      <button class="softkey" data-code="-7" aria-label="右软键">返回</button>
+    </div>
+    <div id="midrow">
+      <div id="dpad">
+        <button class="dbtn up"    data-code="-1">▲</button>
+        <button class="dbtn left"  data-code="-3">◀</button>
+        <button class="dbtn fire"  data-code="-5">确认</button>
+        <button class="dbtn right" data-code="-4">▶</button>
+        <button class="dbtn down"  data-code="-2">▼</button>
+      </div>
+      <div id="numpad">
+        <button class="nbtn" data-code="49">1</button>
+        <button class="nbtn" data-code="50">2</button>
+        <button class="nbtn" data-code="51">3</button>
+        <button class="nbtn" data-code="52">4</button>
+        <button class="nbtn" data-code="53">5</button>
+        <button class="nbtn" data-code="54">6</button>
+        <button class="nbtn" data-code="55">7</button>
+        <button class="nbtn" data-code="56">8</button>
+        <button class="nbtn" data-code="57">9</button>
+        <button class="nbtn" data-code="42">*</button>
+        <button class="nbtn" data-code="48">0</button>
+        <button class="nbtn" data-code="35">#</button>
+      </div>
+    </div>
+  </div>
+  <script src="audio.js"></script>
+  <script src="game.js"></script>
+  <script>
+    // TeaVM 产物为 UMD：main 挂在 window 上，需手动引导
+    window.addEventListener('load', function () {
+      if (typeof window.main === 'function') {
+        window.main();
+      } else {
+        document.title = 'BOOT FAIL: no main()';
+      }
+    });
+  </script>
+  <script src="virtualpad.js"></script>
+</body>
+</html>

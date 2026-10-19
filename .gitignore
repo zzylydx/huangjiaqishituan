@@ -1,0 +1,10 @@
+# 构建中间产物
+workspace/buildtmp/
+workspace/stubs/classes/
+
+# TeaVM 依赖 jar（tools/src/fetch_deps.py 可重新拉取）
+workspace/tools/lib/
+
+# 系统杂项
+Thumbs.db
+Desktop.ini
