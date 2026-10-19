@@ -6,14 +6,15 @@ import javax.microedition.lcdui.Graphics;
 
 /**
  * 宿主桥：绑定画布、注入输入、初始化音频。
- * 缩放由 JS 侧按视口选最大整数倍（像素完美）：iPhone 15 Pro 上为 4x，
- * 画布 backing = 240x4 x 320x4 = 960x1280 设备像素（CSS 320x426.7pt）。
+ * 缩放由 JS 侧按视口计算：CSS 尺寸取整数、backing = 整数CSS × dpr（设备像素 1:1，
+ * 零重采样），Java 侧保存 X/Y 两个浮点缩放供 Graphics 变换。
  */
 public final class Host {
     public static final int LOGICAL_W = 240;
     public static final int LOGICAL_H = 320;
-    /** 实际值由 JS 侧按视口计算（window.__gscale），运行中可变。 */
-    public static int SCALE = 3;
+    /** 实际值由 JS 侧按视口计算（window.__gscaleX/Y），运行中可变。 */
+    public static double SCALE_X = 3;
+    public static double SCALE_Y = 4;
 
     public static boolean attached;
     public static boolean halted;
@@ -29,8 +30,9 @@ public final class Host {
     public static void init() {
         JS.JSCanvas canvas = JS.gameCanvas();
         mainCtx = canvas.getContext("2d");
-        SCALE = Math.max(1, JS.hostScale());
-        mainCtx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+        SCALE_X = JS.hostScaleX();
+        SCALE_Y = JS.hostScaleY();
+        mainCtx.setTransform(SCALE_X, 0, 0, SCALE_Y, 0, 0);
         mainCtx.setImageSmoothingEnabled(false);
         graphics = new Graphics(mainCtx);
 
@@ -46,13 +48,14 @@ public final class Host {
             }
         });
 
-        // 视口变化（旋转/桌面拖窗口）：JS 已更新画布尺寸，这里同步 Graphics 变换
+        // 视口变化（旋转/工具栏收起/桌面拖窗口）：JS 已重设画布尺寸，这里同步 Graphics 变换
         JS.registerResize(new JS.ResizeHandler() {
-            public void call(int scale) {
-                if (scale >= 1 && scale != Host.SCALE) {
-                    Host.SCALE = scale;
+            public void call(double scaleX, double scaleY) {
+                if (scaleX >= 1 && scaleY >= 1 && (scaleX != Host.SCALE_X || scaleY != Host.SCALE_Y)) {
+                    Host.SCALE_X = scaleX;
+                    Host.SCALE_Y = scaleY;
                     try {
-                        mainCtx.setTransform(scale, 0, 0, scale, 0, 0);
+                        mainCtx.setTransform(scaleX, 0, 0, scaleY, 0, 0);
                     } catch (Throwable t) {
                         JS.error("resize transform: " + t);
                     }
@@ -61,7 +64,7 @@ public final class Host {
         });
 
         HostAudio.init();
-        JS.log("host init done, scale=" + Host.SCALE);
+        JS.log("host init done, scale=" + Host.SCALE_X + "x" + Host.SCALE_Y);
     }
 
     public static void attach() {

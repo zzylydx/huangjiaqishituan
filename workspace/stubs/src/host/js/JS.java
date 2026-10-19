@@ -32,17 +32,20 @@ public final class JS {
         void call(int keyCode, boolean down);
     }
 
-    // ---------- 缩放桥（JS 计算整数倍最优缩放，Java 侧同步 Graphics 变换） ----------
+    // ---------- 缩放桥（JS 计算画布尺寸，Java 侧同步 Graphics 变换） ----------
 
-    @JSBody(params = {}, script = "return (window.__gscale|0) || 3;")
-    public static native int hostScale();
+    @JSBody(params = {}, script = "return window.__gscaleX || 3;")
+    public static native double hostScaleX();
+
+    @JSBody(params = {}, script = "return window.__gscaleY || 4;")
+    public static native double hostScaleY();
 
     @JSBody(params = {"fn"}, script = "window.__resizeJava = fn;")
     public static native void registerResize(ResizeHandler fn);
 
     @JSFunctor
     public interface ResizeHandler extends JSObject {
-        void call(int scale);
+        void call(double scaleX, double scaleY);
     }
 
     // ---------- 存储 ----------

@@ -252,7 +252,7 @@ public class Graphics {
 
     private void begin(boolean fill) {
         ctx.save();
-        ctx.setTransform(Host.SCALE, 0, 0, Host.SCALE, tx * (double) Host.SCALE, ty * (double) Host.SCALE);
+        ctx.setTransform(Host.SCALE_X, 0, 0, Host.SCALE_Y, tx * Host.SCALE_X, ty * Host.SCALE_Y);
         if (!fullClip()) {
             ctx.beginPath();
             ctx.rect(clipAbsX - tx, clipAbsY - ty, clipAbsW, clipAbsH);

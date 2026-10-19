@@ -1,5 +1,5 @@
 /* Service Worker：cache-first 全量预缓存，离线可玩 */
-var CACHE = 'hsqst-v2';
+var CACHE = 'hsqst-v3';
 var ASSETS = [
   './',
   './index.html',
