@@ -21,6 +21,7 @@ echo "== 2. TeaVM 编译 ($LEVEL) =="
 echo "== 3. 组装 dist =="
 cp web/index.html web/virtualpad.js web/manifest.webmanifest web/sw.js dist/
 [ -f web/audio.js ] && cp web/audio.js dist/
+[ -f web/hd.js ] && cp web/hd.js dist/
 [ -d dist/icons ] || cp -r web/icons dist/icons
 
 echo "== 4. 同步 GitHub Pages 目录 (docs/) =="

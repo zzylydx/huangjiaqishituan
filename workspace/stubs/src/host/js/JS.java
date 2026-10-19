@@ -81,6 +81,17 @@ public final class JS {
     @JSBody(params = {"s"}, script = "console.error('[host] ' + s);")
     public static native void error(String s);
 
+    // ---------- 高清重制素材（make_hd.mjs 构建期生成 hd.js） ----------
+
+    @JSBody(params = {"k"}, script = "return (window.__hd && window.__hd[k]) || null;")
+    public static native String hdDataUrl(String k);
+
+    @JSBody(params = {}, script = "return location.search.indexOf('dump=1') >= 0;")
+    public static native boolean dumpMode();
+
+    @JSBody(params = {"k", "v"}, script = "if (window.__hdDump) window.__hdDump[k] = v;")
+    public static native void hdDump(String k, String v);
+
     // ---------- 覆盖接口 ----------
 
     public interface JSCanvas extends JSObject {
@@ -160,6 +171,8 @@ public final class JS {
         void ellipse(double x, double y, double rx, double ry, double rot, double a0, double a1);
 
         void drawImage(JSObject img, double x, double y);
+
+        void drawImage(JSObject img, double x, double y, double w, double h);
 
         void fillText(String s, double x, double y);
 

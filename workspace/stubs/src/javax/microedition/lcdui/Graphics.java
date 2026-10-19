@@ -205,7 +205,8 @@ public class Graphics {
             dy = y - (h >> 1);
         }
         begin(false);
-        ctx.drawImage(img.element, dx, dy);
+        // 显式按逻辑矩形绘制：命中高清重制素材时自动获得 xBRZ 细节
+        ctx.drawImage(img.element, dx, dy, img.width, img.height);
         end();
     }
 

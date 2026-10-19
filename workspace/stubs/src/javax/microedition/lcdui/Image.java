@@ -17,6 +17,8 @@ public class Image {
     int height;
     JS.JSElement element;
     boolean decodeFailed;
+    /** 高清版宽/逻辑宽（xBRZ 重制倍率），绘制时按逻辑矩形映射。 */
+    int hdRatio = 1;
 
     private Image() {
     }
@@ -50,8 +52,19 @@ public class Image {
         parseHeader(img, slice, off);
         String mime = sniffMime(slice, off);
         String b64 = base64Encode(slice, off, slice.length - off);
+        String origUrl = "data:" + mime + ";base64," + b64;
+        String url = origUrl;
         JS.JSElement el = JS.createElement("img");
-        el.setSrc("data:" + mime + ";base64," + b64);
+        // 高清重制：命中构建期指纹表则替换为 xBRZ 放大版（绘制按逻辑矩形映射）
+        String key = hdKey(slice, off);
+        String hdUrl = key != null ? JS.hdDataUrl(key) : null;
+        if (hdUrl != null) {
+            url = hdUrl;
+        } else if (JS.dumpMode() && key != null) {
+            // 素材捕获模式（?dump=1）：把游戏解码后的真实图片按指纹倾倒给构建期
+            JS.hdDump(key, url);
+        }
+        el.setSrc(url);
         el.addEventListener("load", new JS.JSFunc() {
             private Image owner;
 
@@ -65,10 +78,44 @@ public class Image {
                     owner.width = owner.element.getWidth();
                     owner.height = owner.element.getHeight();
                 }
+                if (owner.width > 0) {
+                    owner.hdRatio = Math.max(1, owner.element.getWidth() / owner.width);
+                }
             }
         }.init(img));
+        el.addEventListener("error", new JS.JSFunc() {
+            private Image owner;
+            private String fallback;
+
+            JS.JSFunc init(Image o, String fb) {
+                this.owner = o;
+                this.fallback = fb;
+                return this;
+            }
+
+            public void run() {
+                // 高清版解码失败：回退原图，保证永不黑块
+                if (owner.hdRatio != 1) {
+                    owner.hdRatio = 1;
+                    owner.element.setSrc(fallback);
+                }
+            }
+        }.init(img, origUrl));
         img.element = el;
         return img;
+    }
+
+    /** 素材指纹：len_fnv1a32（与 make_hd.mjs 保持一致）。 */
+    private static String hdKey(byte[] b, int off) {
+        if (b == null || off >= b.length) {
+            return null;
+        }
+        int h = (int) 2166136261L;
+        for (int i = off; i < b.length; i++) {
+            h ^= b[i] & 0xFF;
+            h *= 16777619;
+        }
+        return (b.length - off) + "_" + Integer.toUnsignedString(h);
     }
 
     private static Image empty() {

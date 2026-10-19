@@ -8,6 +8,18 @@
   }
   window.__pad = pad; // 供 autotap 等外部驱动使用
 
+  // ---------- 素材捕获模式（?dump=1，构建期高清重制用） ----------
+  if (location.search.indexOf('dump=1') >= 0) {
+    window.__hdDump = {};
+    setInterval(function () {
+      try {
+        if (Object.keys(window.__hdDump).length) {
+          fetch('/dump', { method: 'POST', body: JSON.stringify(window.__hdDump) });
+        }
+      } catch (e) {}
+    }, 4000);
+  }
+
   // ---------- 画布自适应：双画质模式 ----------
   // 锐利=整数倍像素完美（每逻辑像素恰 k×k 设备像素，零重采样，画面略小有边框）
   // 铺满=ceil 整数倍超采样渲染 + 平滑微缩（画面最大，约 5% 均匀柔和）
