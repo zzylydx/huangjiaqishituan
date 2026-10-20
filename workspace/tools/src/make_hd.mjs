@@ -204,7 +204,27 @@ for (const [key, dataUrl] of Object.entries(dump)) {
   totHd += dec.width * scale * dec.height * scale
 }
 const js = '/* xBRZ 高清重制素材（构建期生成，勿手改）make_hd.mjs */\nwindow.__hd = {\n' + out.join(',\n') + '\n};\n'
-fs.writeFileSync(OUT, js)
+
+// ---------- 光标精灵指纹表（全触屏直控：绘制时上报位置，点击翻译成光标步进） ----------
+// 与 Java 侧 Image.hdKey 同算法：len_fnv1a32(pak 内解码后 PNG 原始字节)
+function fnv1a(buf) {
+  let h = 2166136261 >>> 0
+  for (let i = 0; i < buf.length; i++) {
+    h ^= buf[i]
+    h = Math.imul(h, 16777619) >>> 0
+  }
+  return h >>> 0
+}
+const cursorKeys = []
+for (let i = 0; i <= 5; i++) {
+  const p = path.join(WS, 'res', 'pakdata', 'cursor_0' + i + '.png')
+  if (!fs.existsSync(p)) continue
+  const buf = fs.readFileSync(p)
+  cursorKeys.push(`${buf.length}_${fnv1a(buf)}`)
+}
+const jsCursor = 'window.__cursorKeys = ' + JSON.stringify(cursorKeys) + ';\n'
+fs.writeFileSync(OUT, js + jsCursor)
 console.log(`png=${pngCount} hd=${out.length} skipped=${skip}`)
 console.log(`pixels: orig=${(totOrig / 1e6).toFixed(2)}M -> hd=${(totHd / 1e6).toFixed(2)}M (decode ~${(totHd * 4 / 1e6).toFixed(0)}MB)`)
 console.log(`hd.js: ${(fs.statSync(OUT).size / 1e6).toFixed(2)}MB`)
+console.log(`cursorKeys: ${cursorKeys.length}`)

@@ -48,6 +48,18 @@ public final class Host {
             }
         });
 
+        // 游戏区触摸直通（FullCn 原生分区）
+        JS.registerPointer(new JS.PointerHandler() {
+            public void call(int x, int y, boolean down) {
+                try {
+                    HostAudio.ensureResumed();
+                    HostInput.dispatchPointer(x, y, down);
+                } catch (Throwable t) {
+                    JS.error("pointer dispatch: " + t);
+                }
+            }
+        });
+
         // 视口变化（旋转/工具栏收起/桌面拖窗口）：JS 已重设画布尺寸，这里同步 Graphics 变换
         JS.registerResize(new JS.ResizeHandler() {
             public void call(double scaleX, double scaleY) {

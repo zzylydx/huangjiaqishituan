@@ -32,6 +32,28 @@ public final class JS {
         void call(int keyCode, boolean down);
     }
 
+    /** 触摸直通：JS 游戏区触摸(游戏坐标) -> FullCn.pointerPressed/Released。 */
+    @JSBody(params = {"fn"}, script = "window.__padPointerJava = fn;")
+    public static native void registerPointer(PointerHandler fn);
+
+    @JSFunctor
+    public interface PointerHandler extends JSObject {
+        void call(int x, int y, boolean down);
+    }
+
+    // ---------- 光标追踪（全触屏直控：JS 需要知道战棋光标画在哪） ----------
+
+    /** 构建期生成的光标素材指纹表（hd.js 内 window.__cursorKeys）。 */
+    @JSBody(params = {"k"}, script = "return !!(window.__cursorKeys && window.__cursorKeys.indexOf(k) >= 0);")
+    public static native boolean isCursorKey(String k);
+
+    @JSBody(params = {"x", "y", "w", "h"}, script = "window.__cursor = {x:x, y:y, w:w, h:h, t:Date.now()};")
+    public static native void reportCursor(int x, int y, int w, int h);
+
+    /** 每帧重绘后打点：JS 判定光标是否画在「最近一帧」里（本游戏是脏矩形重绘，不能按墙钟判新鲜度）。 */
+    @JSBody(params = {}, script = "window.__lastpaint = Date.now();")
+    public static native void markPaint();
+
     // ---------- 缩放桥（JS 计算画布尺寸，Java 侧同步 Graphics 变换） ----------
 
     @JSBody(params = {}, script = "return window.__gscaleX || 3;")

@@ -18,6 +18,20 @@ echo "== 2. TeaVM 编译 ($LEVEL) =="
 "$JDK/java" -Xmx2g -cp "tools/lib/*;stubs/classes;res;../皇家骑士团.jar" \
   tools/src/Build.java HostMain dist "$LEVEL" 2>&1 | grep -E "^\[TEAVM|successfully|with errors|with warnings" || true
 
+# 可选：扩展包变体（res_custom/240_320.pak 存在时，双构建供前端切换）
+if [ -f res_custom/240_320.pak ]; then
+  echo "== 2b. TeaVM 编译扩展包变体 =="
+  rm -rf res_custom_other
+  mkdir -p res_custom_other
+  cp res/*.png res/*.pak res/*.dat res/*.mid res/setting.dat_11 res_custom_other/ 2>/dev/null || true
+  [ -d res/icons ] && cp -r res/icons res_custom_other/icons
+  cp res_custom/240_320.pak res_custom_other/240_320.pak
+  "$JDK/java" -Xmx2g -cp "tools/lib/*;stubs/classes;res_custom_other;../皇家骑士团.jar" \
+    tools/src/Build.java HostMain dist_custom "$LEVEL" 2>&1 | grep -E "^\[TEAVM|successfully|with errors|with warnings" || true
+  [ -f dist_custom/game.js ] && cp dist_custom/game.js dist/game_custom.js
+  rm -rf res_custom_other
+fi
+
 echo "== 3. 组装 dist =="
 cp web/index.html web/virtualpad.js web/manifest.webmanifest web/sw.js dist/
 [ -f web/audio.js ] && cp web/audio.js dist/
@@ -32,3 +46,4 @@ fi
 
 echo "== 完成 =="
 ls -la dist/game.js
+[ -f dist/game_custom.js ] && ls -la dist/game_custom.js

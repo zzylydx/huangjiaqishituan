@@ -21,6 +21,11 @@ public final class HostInput {
         Canvas.dispatchKey(keyCode, isDown);
     }
 
+    /** 触摸（游戏坐标）直通 FullCn 分区。 */
+    public static void dispatchPointer(int x, int y, boolean isDown) {
+        Canvas.dispatchPointer(x, y, isDown);
+    }
+
     public static int keyStates() {
         int s = 0;
         if (up) s |= javax.microedition.lcdui.game.GameCanvas.UP_PRESSED;

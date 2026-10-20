@@ -139,14 +139,57 @@
     touch-action: none;
   }
   .nbtn:active, .nbtn.pressed { background: #2c3552; color: #fff; }
+  /* 键盘收起（全触屏模式） */
+  body.padhidden #pad { display: none; }
+  body.padhidden #screenframe { padding: 0; }
+  #floatcol {
+    display: none;
+    position: fixed;
+    right: calc(4px + env(safe-area-inset-right));
+    top: 50%;
+    transform: translateY(-50%);
+    flex-direction: column;
+    gap: 10px;
+    z-index: 40;
+  }
+  body.padhidden #floatcol { display: flex; }
+  .fbtn {
+    width: 34px;
+    height: 34px;
+    border: 1px solid #2c3247;
+    border-radius: 50%;
+    background: rgba(20, 24, 36, 0.72);
+    color: #cdd4e8;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+  }
+  .fbtn:active { background: #2c3552; }
+  /* 触摸分区反馈 */
+  #zoneflash {
+    position: absolute;
+    display: none;
+    pointer-events: none;
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    align-items: center;
+    justify-content: center;
+    z-index: 30;
+  }
 </style>
 </head>
 <body>
-  <div id="screenframe"><canvas id="game" width="720" height="960"></canvas></div>
+  <div id="screenframe"><canvas id="game" width="720" height="960"></canvas><div id="zoneflash"></div></div>
   <div id="pad">
     <div class="softrow">
       <button class="softkey" data-code="-6" aria-label="左软键">菜单</button>
       <button class="softkey" data-code="-7" aria-label="右软键">返回</button>
+      <button class="softkey" id="btnTouch" type="button" aria-label="切换触摸模式">触控·直控</button>
       <button class="softkey" id="btnQuality" type="button" aria-label="切换画质模式">画质·锐利</button>
     </div>
     <div id="midrow">
@@ -172,19 +215,44 @@
         <button class="nbtn" data-code="35">#</button>
       </div>
     </div>
+    <div class="softrow">
+      <button class="softkey" id="btnPadHide" type="button" aria-label="收起键盘进入全触屏">⌨ 收起键盘 · 全触屏</button>
+      <button class="softkey" id="btnPack" type="button" aria-label="切换关卡包">关卡包·原版</button>
+    </div>
+  </div>
+  <div id="floatcol">
+    <button class="fbtn" id="floatPad" type="button" aria-label="恢复键盘">⌨</button>
+    <button class="fbtn" data-code="-6" aria-label="菜单">☰</button>
+    <button class="fbtn" data-code="-7" aria-label="返回">↩</button>
   </div>
   <script src="audio.js"></script>
   <script src="hd.js"></script>
-  <script src="game.js"></script>
   <script>
-    // TeaVM 产物为 UMD：main 挂在 window 上，需手动引导
-    window.addEventListener('load', function () {
-      if (typeof window.main === 'function') {
-        window.main();
-      } else {
-        document.title = 'BOOT FAIL: no main()';
+    // 关卡包选择：classic=原版 | custom=扩展包（重排地图变体），双 TeaVM 构建
+    window.__pack = 'classic';
+    try {
+      window.__pack = localStorage.getItem('hsqst_pak') === 'custom' ? 'custom' : 'classic';
+    } catch (e) {}
+    var qp = location.search.match(/pack=(custom|classic)/);
+    if (qp) {
+      window.__pack = qp[1];
+      try { localStorage.setItem('hsqst_pak', qp[1]); } catch (e) {}
+    }
+    var packScript = document.createElement('script');
+    packScript.src = window.__pack === 'custom' ? 'game_custom.js' : 'game.js';
+    packScript.onload = function () {
+      if (typeof window.main === 'function') window.main();
+      else document.title = 'BOOT FAIL: no main()';
+    };
+    packScript.onerror = function () {
+      if (window.__pack === 'custom') { // 扩展包缺失时回退原版
+        var s2 = document.createElement('script');
+        s2.src = 'game.js';
+        s2.onload = function () { if (typeof window.main === 'function') window.main(); };
+        document.head.appendChild(s2);
       }
-    });
+    };
+    document.head.appendChild(packScript);
   </script>
   <script src="virtualpad.js"></script>
 </body>

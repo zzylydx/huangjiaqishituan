@@ -208,6 +208,10 @@ public class Graphics {
         // 显式按逻辑矩形绘制：命中高清重制素材时自动获得 xBRZ 细节
         ctx.drawImage(img.element, dx, dy, img.width, img.height);
         end();
+        // 全触屏直控：战棋光标位置实时上报（JS 侧把点击翻译成方向键步进）
+        if (img.isCursorSprite) {
+            JS.reportCursor(dx, dy, img.width, img.height);
+        }
     }
 
     public void drawString(String str, int x, int y, int anchor) {

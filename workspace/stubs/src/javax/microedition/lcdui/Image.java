@@ -64,6 +64,8 @@ public class Image {
             // 素材捕获模式（?dump=1）：把游戏解码后的真实图片按指纹倾倒给构建期
             JS.hdDump(key, url);
         }
+        // 全触屏直控：标记战棋光标精灵（绘制时上报屏幕位置给 JS）
+        img.isCursorSprite = key != null && JS.isCursorKey(key);
         el.setSrc(url);
         el.addEventListener("load", new JS.JSFunc() {
             private Image owner;
@@ -104,6 +106,9 @@ public class Image {
         img.element = el;
         return img;
     }
+
+    /** 是否战棋光标精灵（全触屏直控用）。 */
+    boolean isCursorSprite;
 
     /** 素材指纹：len_fnv1a32（与 make_hd.mjs 保持一致）。 */
     private static String hdKey(byte[] b, int off) {

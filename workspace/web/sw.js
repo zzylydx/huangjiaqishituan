@@ -1,9 +1,10 @@
 /* Service Worker：cache-first 全量预缓存，离线可玩 */
-var CACHE = 'hsqst-v6';
+var CACHE = 'hsqst-v8';
 var ASSETS = [
   './',
   './index.html',
   './game.js',
+  './game_custom.js',
   './audio.js',
   './hd.js',
   './virtualpad.js',

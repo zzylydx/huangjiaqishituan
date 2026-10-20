@@ -1,6 +1,7 @@
 package javax.microedition.lcdui;
 
 import host.Host;
+import host.js.JS;
 
 /**
  * MIDP Canvas 桩。
@@ -78,6 +79,7 @@ public abstract class Canvas extends Displayable {
                 Host.log("serviceRepaints -> paint #" + paintCount + " on " + getClass().getName());
             }
             paint(Host.graphics());
+            JS.markPaint();
         }
     }
 
@@ -157,6 +159,19 @@ public abstract class Canvas extends Displayable {
             c.keyPressed(keyCode);
         } else {
             c.keyReleased(keyCode);
+        }
+    }
+
+    /** 触摸直通：x/y 为 240x320 游戏坐标，由 FullCn 的 pointerPressed 做分区转换。 */
+    public static void dispatchPointer(int x, int y, boolean down) {
+        Canvas c = current;
+        if (c == null) {
+            return;
+        }
+        if (down) {
+            c.pointerPressed(x, y);
+        } else {
+            c.pointerReleased(x, y);
         }
     }
 }
