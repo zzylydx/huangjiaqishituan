@@ -143,6 +143,7 @@
   }
   var flashTimer = null;
   function flashZone(g, code) {
+    if (!flashEl) return; // 旧缓存混用时防御
     var r = game.getBoundingClientRect();
     flashEl.style.display = 'flex';
     flashEl.style.left = Math.round(r.left + g.fx * r.width - r.width / 6) + 'px';

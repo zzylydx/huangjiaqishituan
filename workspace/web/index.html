@@ -67,6 +67,11 @@
     gap: 8px;
     flex: 0 0 auto;
   }
+  .softrow2 .softkey {
+    height: 30px;
+    font-size: 12px;
+    border-radius: 7px;
+  }
   .softkey {
     flex: 1;
     height: 38px;
@@ -215,7 +220,7 @@
         <button class="nbtn" data-code="35">#</button>
       </div>
     </div>
-    <div class="softrow">
+    <div class="softrow softrow2">
       <button class="softkey" id="btnPadHide" type="button" aria-label="收起键盘进入全触屏">⌨ 收起键盘 · 全触屏</button>
       <button class="softkey" id="btnPack" type="button" aria-label="切换关卡包">关卡包·原版</button>
     </div>
@@ -227,8 +232,11 @@
   </div>
   <script src="audio.js"></script>
   <script src="hd.js"></script>
+  <script src="virtualpad.js"></script>
   <script>
-    // 关卡包选择：classic=原版 | custom=扩展包（重排地图变体），双 TeaVM 构建
+    // 关卡包选择：classic=原版 | custom=扩展包（重排地图变体），双 TeaVM 构建。
+    // virtualpad.js 已同步执行完（布局/缩放就绪），此处才允许 main() 启动，
+    // 否则首帧绘制后 layout() 重设画布会清屏且音乐提示页不再重绘 → 黑屏。
     window.__pack = 'classic';
     try {
       window.__pack = localStorage.getItem('hsqst_pak') === 'custom' ? 'custom' : 'classic';
@@ -254,6 +262,5 @@
     };
     document.head.appendChild(packScript);
   </script>
-  <script src="virtualpad.js"></script>
 </body>
 </html>
