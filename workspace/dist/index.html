@@ -89,13 +89,14 @@
     min-height: 0;
     align-items: stretch;
   }
-  #dpad {
-    flex: 0 0 auto;
-    width: 142px;
+  #padgrid {
+    flex: 1 1 auto;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     grid-template-rows: 46px 46px 46px;
-    gap: 2px;
+    column-gap: 6px;
+    row-gap: 2px;
+    min-width: 0;
   }
   .dbtn {
     border: 1px solid #2c3247;
@@ -113,17 +114,7 @@
   .dbtn.left { grid-column: 1; grid-row: 2; }
   .dbtn.fire { grid-column: 2; grid-row: 2; border-radius: 50%; background: linear-gradient(#33241c, #241812); color: #f0b090; border-color: #4a3226; }
   .dbtn.fire:active, .dbtn.fire.pressed { background: #54372a; }
-  .dbtn.right { grid-column: 3; grid-row: 2; }
-  .dbtn.down { grid-column: 2; grid-row: 3; }
-  #numpad {
-    flex: 1 1 auto;
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-template-rows: 46px 46px 46px;
-    gap: 2px;
-    min-width: 0;
-  }
-  .nbtn {
+  #padgrid .nbtn {
     min-width: 0;
     min-height: 0;
     padding: 0;
@@ -150,26 +141,24 @@
       <button class="softkey" id="btnQuality" type="button" aria-label="切换画质模式">画质·锐利</button>
     </div>
     <div id="midrow">
-      <div id="dpad">
-        <button class="dbtn up"    data-code="-1">▲</button>
-        <button class="dbtn left"  data-code="-3">◀</button>
-        <button class="dbtn fire"  data-code="-5">确认</button>
-        <button class="dbtn right" data-code="-4">▶</button>
-        <button class="dbtn down"  data-code="-2">▼</button>
-      </div>
-      <div id="numpad">
-        <button class="nbtn" data-code="49">1</button>
-        <button class="nbtn" data-code="50">2</button>
-        <button class="nbtn" data-code="51">3</button>
-        <button class="nbtn" data-code="52">4</button>
-        <button class="nbtn" data-code="53">5</button>
-        <button class="nbtn" data-code="54">6</button>
-        <button class="nbtn" data-code="55">7</button>
-        <button class="nbtn" data-code="56">8</button>
-        <button class="nbtn" data-code="57">9</button>
-        <button class="nbtn" data-code="42">*</button>
-        <button class="nbtn" data-code="48">0</button>
-        <button class="nbtn" data-code="35">#</button>
+      <div id="padgrid">
+        <button class="nbtn" data-code="49" style="grid-area:1/1">1</button>
+        <button class="nbtn" data-code="50" style="grid-area:1/2">2</button>
+        <button class="dbtn up"    data-code="-1" style="grid-area:1/4">▲</button>
+        <button class="nbtn" data-code="55" style="grid-area:1/6">7</button>
+        <button class="nbtn" data-code="56" style="grid-area:1/7">8</button>
+        <button class="nbtn" data-code="51" style="grid-area:2/1">3</button>
+        <button class="nbtn" data-code="52" style="grid-area:2/2">4</button>
+        <button class="dbtn left"  data-code="-3" style="grid-area:2/3">◀</button>
+        <button class="dbtn fire"  data-code="-5" style="grid-area:2/4">确认</button>
+        <button class="dbtn right" data-code="-4" style="grid-area:2/5">▶</button>
+        <button class="nbtn" data-code="53" style="grid-area:2/6">9</button>
+        <button class="nbtn" data-code="48" style="grid-area:2/7">0</button>
+        <button class="nbtn" data-code="53" style="grid-area:3/1">5</button>
+        <button class="nbtn" data-code="54" style="grid-area:3/2">6</button>
+        <button class="dbtn down"  data-code="-2" style="grid-area:3/4">▼</button>
+        <button class="nbtn" data-code="42" style="grid-area:3/6">*</button>
+        <button class="nbtn" data-code="35" style="grid-area:3/7">#</button>
       </div>
     </div>
   </div>

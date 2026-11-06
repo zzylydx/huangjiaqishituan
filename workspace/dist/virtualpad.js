@@ -174,8 +174,8 @@ if (location.search.indexOf('debug=1') >= 0) {
   window.__touchdebug = true;
   window.addEventListener('load', function () {
     setTimeout(function () {
-      var np = document.getElementById('numpad');
-      var mid = document.getElementById('midrow');
+      var np = document.getElementById('padgrid');
+      
       var d = document.createElement('div');
       d.style.cssText = 'position:fixed;top:0;left:0;background:#fff;color:#000;font-size:10px;z-index:99;padding:2px;white-space:pre;';
       d.textContent = 'iw=' + window.innerWidth + ' ih=' + window.innerHeight
